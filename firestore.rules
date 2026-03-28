@@ -1,0 +1,122 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: alternatives
+    // Document ID: {alternativeId}
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required, 1-100 chars)
+    //   - description: string (optional, 0-500 chars)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: criteria
+    // Document ID: {criterionId}
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (required, 1-100 chars)
+    //   - type: string (required, enum: ['maximize', 'minimize'])
+    //   - description: string (optional, 0-500 chars)
+    //   - createdAt: timestamp (required)
+    //
+    // Collection: evaluations
+    // Document ID: {alternativeId}_{criterionId}
+    // Fields:
+    //   - alternative_id: string (required)
+    //   - criterion_id: string (required)
+    //   - value: number (required)
+    //   - updatedAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+          (request.auth.token.email == "misam5302@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+    function isValidAlternative(data) {
+      return hasRequiredFields(['id', 'name', 'createdAt']) &&
+             hasOnlyAllowedFields(['id', 'name', 'description', 'createdAt']) &&
+             data.id is string && data.id.size() > 0 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidCriterion(data) {
+      return hasRequiredFields(['id', 'name', 'type', 'createdAt']) &&
+             hasOnlyAllowedFields(['id', 'name', 'type', 'description', 'createdAt']) &&
+             data.id is string && data.id.size() > 0 &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.type in ['maximize', 'minimize'] &&
+             (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidEvaluation(data) {
+      return hasRequiredFields(['alternative_id', 'criterion_id', 'value', 'updatedAt']) &&
+             hasOnlyAllowedFields(['alternative_id', 'criterion_id', 'value', 'updatedAt']) &&
+             data.alternative_id is string && data.alternative_id.size() > 0 &&
+             data.criterion_id is string && data.criterion_id.size() > 0 &&
+             data.value is number &&
+             data.updatedAt is timestamp;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /alternatives/{alternativeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAlternative(request.resource.data);
+      allow update: if isAuthenticated() && isValidAlternative(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /criteria/{criterionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidCriterion(request.resource.data);
+      allow update: if isAuthenticated() && isValidCriterion(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /evaluations/{evaluationId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidEvaluation(request.resource.data);
+      allow update: if isAuthenticated() && isValidEvaluation(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Default deny
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

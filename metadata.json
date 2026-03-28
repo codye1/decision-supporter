@@ -1,0 +1,5 @@
+{
+  "name": "Decision Supporter",
+  "description": "Базова система підтримки прийняття рішень для управління альтернативами, критеріями та оцінками.",
+  "requestFramePermissions": []
+}

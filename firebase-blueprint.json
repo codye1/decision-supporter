@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "Alternative": {
+      "title": "Alternative",
+      "description": "A possible choice or solution in the decision-making process.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the alternative." },
+        "name": { "type": "string", "description": "Name of the alternative." },
+        "description": { "type": "string", "description": "Detailed description of the alternative." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the alternative was created." }
+      },
+      "required": ["id", "name"]
+    },
+    "Criterion": {
+      "title": "Criterion",
+      "description": "A standard or rule by which alternatives are evaluated.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the criterion." },
+        "name": { "type": "string", "description": "Name of the criterion." },
+        "type": { "type": "string", "enum": ["maximize", "minimize"], "description": "Whether to maximize or minimize the value of this criterion." },
+        "description": { "type": "string", "description": "Detailed description of the criterion." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the criterion was created." }
+      },
+      "required": ["id", "name", "type"]
+    },
+    "Evaluation": {
+      "title": "Evaluation",
+      "description": "The assessment of an alternative based on a specific criterion.",
+      "type": "object",
+      "properties": {
+        "alternative_id": { "type": "string", "description": "ID of the alternative being evaluated." },
+        "criterion_id": { "type": "string", "description": "ID of the criterion used for evaluation." },
+        "value": { "type": "number", "description": "The numerical value of the evaluation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Timestamp when the evaluation was last updated." }
+      },
+      "required": ["alternative_id", "criterion_id", "value"]
+    }
+  },
+  "firestore": {
+    "/alternatives/{alternativeId}": {
+      "schema": "Alternative",
+      "description": "Collection of decision alternatives."
+    },
+    "/criteria/{criterionId}": {
+      "schema": "Criterion",
+      "description": "Collection of evaluation criteria."
+    },
+    "/evaluations/{evaluationId}": {
+      "schema": "Evaluation",
+      "description": "Collection of evaluations for alternatives across criteria. Document ID is usually {alternativeId}_{criterionId}."
+    }
+  }
+}
