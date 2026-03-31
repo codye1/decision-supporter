@@ -13,6 +13,7 @@ export interface Criterion {
   type: CriterionType;
   description?: string;
   createdAt: any;
+  weight: number;
 }
 
 export interface Evaluation {

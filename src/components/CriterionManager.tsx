@@ -12,25 +12,28 @@ export const CriterionManager: React.FC<CriterionManagerProps> = ({ criteria }) 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [type, setType] = useState<CriterionType>('maximize');
+  const [weight, setWeight] = useState(1);
   const [description, setDescription] = useState('');
 
   const handleAdd = async () => {
-
     if (!name.trim()) return;
-
-      await decisionService.addCriterion(name, type, description);
+    const finalWeight = isNaN(weight) ? 1 : weight;
+    await decisionService.addCriterion(name, type, finalWeight, description);
     setName('');
     setType('maximize');
+    setWeight(1);
     setDescription('');
     setIsAdding(false);
   };
 
   const handleUpdate = async (id: string) => {
     if (!name.trim()) return;
-      await decisionService.updateCriterion(id, name, type, description);
+    const finalWeight = isNaN(weight) ? 1 : weight;
+    await decisionService.updateCriterion(id, name, type, finalWeight, description);
     setEditingId(null);
     setName('');
     setType('maximize');
+    setWeight(1);
     setDescription('');
   };
 
@@ -38,8 +41,8 @@ export const CriterionManager: React.FC<CriterionManagerProps> = ({ criteria }) 
     setEditingId(crit.id);
     setName(crit.name);
     setType(crit.type);
+    setWeight(crit.weight || 1);
     setDescription(crit.description || '');
-    setIsAdding(false);
   };
 
   return (
@@ -80,6 +83,21 @@ export const CriterionManager: React.FC<CriterionManagerProps> = ({ criteria }) 
                 >
                   <ArrowDown size={16} /> Мінімізувати
                 </button>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-slate-500 uppercase">Вага (0.1 - 1.0)</label>
+                <input
+                  type="number"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                  value={isNaN(weight) ? '' : weight}
+                  onChange={(e) => {
+                    const val = parseFloat(e.target.value);
+                    setWeight(val);
+                  }}
+                />
               </div>
               <textarea
                 placeholder="Опис (необов'язково)"
@@ -125,6 +143,21 @@ export const CriterionManager: React.FC<CriterionManagerProps> = ({ criteria }) 
                     <ArrowDown size={16} /> Мінімізувати
                   </button>
                 </div>
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-slate-500 uppercase">Вага (0.1 - 1.0)</label>
+                  <input
+                    type="number"
+                    min="0.1"
+                    max="1"
+                    step="0.1"
+                    className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none"
+                    value={isNaN(weight) ? '' : weight}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setWeight(val);
+                    }}
+                  />
+                </div>
                 <textarea
                   className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none h-20"
                   value={description}
@@ -142,6 +175,9 @@ export const CriterionManager: React.FC<CriterionManagerProps> = ({ criteria }) 
                     <h3 className="font-medium text-slate-900">{crit.name}</h3>
                     <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full ${crit.type === 'maximize' ? 'bg-emerald-100 text-emerald-700' : 'bg-indigo-100 text-indigo-700'}`}>
                       {crit.type === 'maximize' ? 'максимізація' : 'мінімізація'}
+                    </span>
+                    <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                      вага: {crit.weight || 1}
                     </span>
                   </div>
                   <p className="text-sm text-slate-500 mt-1">{crit.description || 'Опис відсутній.'}</p>

@@ -19,6 +19,7 @@ service cloud.firestore {
     //   - id: string (required)
     //   - name: string (required, 1-100 chars)
     //   - type: string (required, enum: ['maximize', 'minimize'])
+    //   - weight: number (required, 0.1-1.0)
     //   - description: string (optional, 0-500 chars)
     //   - createdAt: timestamp (required)
     //
@@ -66,11 +67,12 @@ service cloud.firestore {
     }
 
     function isValidCriterion(data) {
-      return hasRequiredFields(['id', 'name', 'type', 'createdAt']) &&
-             hasOnlyAllowedFields(['id', 'name', 'type', 'description', 'createdAt']) &&
+      return hasRequiredFields(['id', 'name', 'type', 'weight', 'createdAt']) &&
+             hasOnlyAllowedFields(['id', 'name', 'type', 'weight', 'description', 'createdAt']) &&
              data.id is string && data.id.size() > 0 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
              data.type in ['maximize', 'minimize'] &&
+             data.weight is number && data.weight >= 0.1 && data.weight <= 1.0 &&
              (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
              data.createdAt is timestamp;
     }

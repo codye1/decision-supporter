@@ -72,12 +72,13 @@ export const decisionService = {
     });
   },
 
-  async addCriterion(name: string, type: 'maximize' | 'minimize', description?: string) {
+  async addCriterion(name: string, type: 'maximize' | 'minimize', weight: number = 1, description?: string) {
     const id = doc(collection(db, CRITERIA_COLLECTION)).id;
-    const criterion = {
+    const criterion: Criterion = {
       id,
       name,
       type,
+      weight,
       description,
       createdAt: Timestamp.now(),
     };
@@ -88,9 +89,9 @@ export const decisionService = {
     }
   },
 
-  async updateCriterion(id: string, name: string, type: 'maximize' | 'minimize', description?: string) {
+  async updateCriterion(id: string, name: string, type: 'maximize' | 'minimize', weight: number, description?: string) {
     try {
-      await updateDoc(doc(db, CRITERIA_COLLECTION, id), { name, type, description });
+      await updateDoc(doc(db, CRITERIA_COLLECTION, id), { name, type, weight, description });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `${CRITERIA_COLLECTION}/${id}`);
     }

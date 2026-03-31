@@ -20,6 +20,7 @@
         "id": { "type": "string", "description": "Unique identifier for the criterion." },
         "name": { "type": "string", "description": "Name of the criterion." },
         "type": { "type": "string", "enum": ["maximize", "minimize"], "description": "Whether to maximize or minimize the value of this criterion." },
+        "weight": { "type": "number", "description": "Importance weight of the criterion (usually 0 to 1)." },
         "description": { "type": "string", "description": "Detailed description of the criterion." },
         "createdAt": { "type": "string", "format": "date-time", "description": "Timestamp when the criterion was created." }
       },
