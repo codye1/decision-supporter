@@ -8,9 +8,12 @@ export const AuthScreen: React.FC = () => (
       <div className="w-20 h-20 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
         <Scale className="text-indigo-600" size={40} />
       </div>
-      <h1 className="text-2xl font-bold text-slate-900 mb-2">Decision Supporter</h1>
+      <h1 className="text-2xl font-bold text-slate-900 mb-2">
+        Decision Supporter
+      </h1>
       <p className="text-slate-500 mb-8">
-        Основа для структурованого прийняття рішень. Будь ласка, увійдіть, щоб керувати своїми альтернативами та критеріями.
+        Основа для структурованого прийняття рішень. Будь ласка, увійдіть, щоб
+        керувати своїми альтернативами та критеріями.
       </p>
       <button
         onClick={signInWithGoogle}

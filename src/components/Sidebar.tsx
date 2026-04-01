@@ -1,5 +1,11 @@
 import React from 'react';
-import { LogOut, LayoutDashboard, Settings, BarChart3, Scale } from 'lucide-react';
+import {
+  LogOut,
+  LayoutDashboard,
+  Settings,
+  BarChart3,
+  Scale,
+} from 'lucide-react';
 import { User } from 'firebase/auth';
 import { logout } from '../firebase';
 
@@ -9,13 +15,19 @@ interface SidebarProps {
   setActiveTab: (tab: 'dashboard' | 'alternatives' | 'criteria') => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, setActiveTab }) => (
+export const Sidebar: React.FC<SidebarProps> = ({
+  user,
+  activeTab,
+  setActiveTab,
+}) => (
   <aside className="w-64 bg-white border-r border-slate-200 flex flex-col fixed h-full z-20">
     <div className="p-6 flex items-center gap-3 border-b border-slate-100">
       <div className="p-2 bg-indigo-600 rounded-lg">
         <Scale className="text-white" size={20} />
       </div>
-      <span className="font-bold text-slate-800 tracking-tight">Decision Supporter</span>
+      <span className="font-bold text-slate-800 tracking-tight">
+        Decision Supporter
+      </span>
     </div>
 
     <nav className="flex-1 p-4 space-y-2">
@@ -41,9 +53,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ user, activeTab, setActiveTab 
 
     <div className="p-4 border-t border-slate-100">
       <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl mb-4">
-        <img src={user.photoURL || ''} alt="" className="w-8 h-8 rounded-full border border-slate-200" />
+        <img
+          src={user.photoURL || ''}
+          alt=""
+          className="w-8 h-8 rounded-full border border-slate-200"
+        />
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-slate-900 truncate">{user.displayName}</p>
+          <p className="text-xs font-bold text-slate-900 truncate">
+            {user.displayName}
+          </p>
           <p className="text-[10px] text-slate-500 truncate">{user.email}</p>
         </div>
       </div>

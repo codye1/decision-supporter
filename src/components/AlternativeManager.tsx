@@ -7,7 +7,9 @@ interface AlternativeManagerProps {
   alternatives: Alternative[];
 }
 
-export const AlternativeManager: React.FC<AlternativeManagerProps> = ({ alternatives }) => {
+export const AlternativeManager: React.FC<AlternativeManagerProps> = ({
+  alternatives,
+}) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
@@ -67,19 +69,34 @@ export const AlternativeManager: React.FC<AlternativeManagerProps> = ({ alternat
                 onChange={(e) => setDescription(e.target.value)}
               />
               <div className="flex justify-end gap-2">
-                <button onClick={() => setIsAdding(false)} className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 rounded-lg text-sm">Скасувати</button>
-                <button onClick={handleAdd} className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium">Зберегти</button>
+                <button
+                  onClick={() => setIsAdding(false)}
+                  className="px-3 py-1.5 text-slate-600 hover:bg-slate-200 rounded-lg text-sm"
+                >
+                  Скасувати
+                </button>
+                <button
+                  onClick={handleAdd}
+                  className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium"
+                >
+                  Зберегти
+                </button>
               </div>
             </div>
           </div>
         )}
 
         {alternatives.length === 0 && !isAdding && (
-          <div className="p-8 text-center text-slate-400 italic">Альтернатив поки немає.</div>
+          <div className="p-8 text-center text-slate-400 italic">
+            Альтернатив поки немає.
+          </div>
         )}
 
         {alternatives.map((alt) => (
-          <div key={alt.id} className="p-4 hover:bg-slate-50 transition-colors group">
+          <div
+            key={alt.id}
+            className="p-4 hover:bg-slate-50 transition-colors group"
+          >
             {editingId === alt.id ? (
               <div className="space-y-3">
                 <input
@@ -94,19 +111,41 @@ export const AlternativeManager: React.FC<AlternativeManagerProps> = ({ alternat
                   onChange={(e) => setDescription(e.target.value)}
                 />
                 <div className="flex justify-end gap-2">
-                  <button onClick={() => setEditingId(null)} className="p-1.5 text-slate-400 hover:text-slate-600"><X size={20} /></button>
-                  <button onClick={() => handleUpdate(alt.id)} className="p-1.5 text-emerald-500 hover:text-emerald-600"><Check size={20} /></button>
+                  <button
+                    onClick={() => setEditingId(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-600"
+                  >
+                    <X size={20} />
+                  </button>
+                  <button
+                    onClick={() => handleUpdate(alt.id)}
+                    className="p-1.5 text-emerald-500 hover:text-emerald-600"
+                  >
+                    <Check size={20} />
+                  </button>
                 </div>
               </div>
             ) : (
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-medium text-slate-900">{alt.name}</h3>
-                  <p className="text-sm text-slate-500 mt-1">{alt.description || 'Опис відсутній.'}</p>
+                  <p className="text-sm text-slate-500 mt-1">
+                    {alt.description || 'Опис відсутній.'}
+                  </p>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => startEdit(alt)} className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md"><Edit2 size={16} /></button>
-                  <button onClick={() => decisionService.deleteAlternative(alt.id)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md"><Trash2 size={16} /></button>
+                  <button
+                    onClick={() => startEdit(alt)}
+                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button
+                    onClick={() => decisionService.deleteAlternative(alt.id)}
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
             )}

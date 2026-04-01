@@ -36,17 +36,17 @@
 
 ## 2. Технологічний стек
 
-| Категорія         | Технологія                          |
-|-------------------|-------------------------------------|
-| UI-фреймворк      | React 19                            |
-| Мова              | TypeScript 5.8                      |
-| Збирач            | Vite 6                              |
-| Стилізація        | Tailwind CSS 4                      |
-| Іконки            | Lucide React                        |
-| Анімації          | Motion (Framer Motion)              |
-| База даних        | Firebase Firestore                  |
-| Автентифікація    | Firebase Auth (Google Provider)     |
-| Хостинг / деплой  | Сумісний із Firebase Hosting / Vite |
+| Категорія        | Технологія                          |
+| ---------------- | ----------------------------------- |
+| UI-фреймворк     | React 19                            |
+| Мова             | TypeScript 5.8                      |
+| Збирач           | Vite 6                              |
+| Стилізація       | Tailwind CSS 4                      |
+| Іконки           | Lucide React                        |
+| Анімації         | Motion (Framer Motion)              |
+| База даних       | Firebase Firestore                  |
+| Автентифікація   | Firebase Auth (Google Provider)     |
+| Хостинг / деплой | Сумісний із Firebase Hosting / Vite |
 
 ---
 
@@ -129,8 +129,8 @@ Cloud Firestore
 
 ```typescript
 interface Alternative {
-  id: string;           // Унікальний ідентифікатор (генерується Firestore)
-  name: string;         // Назва альтернативи (обов'язково)
+  id: string; // Унікальний ідентифікатор (генерується Firestore)
+  name: string; // Назва альтернативи (обов'язково)
   description?: string; // Опис (необов'язково)
   createdAt: Timestamp; // Час створення
 }
@@ -144,10 +144,10 @@ interface Alternative {
 
 ```typescript
 interface Criterion {
-  id: string;           // Унікальний ідентифікатор
-  name: string;         // Назва критерію (обов'язково)
+  id: string; // Унікальний ідентифікатор
+  name: string; // Назва критерію (обов'язково)
   type: 'maximize' | 'minimize'; // Тип: максимізація або мінімізація
-  weight: number;       // Вага від 0.1 до 1.0
+  weight: number; // Вага від 0.1 до 1.0
   description?: string; // Опис (необов'язково)
   createdAt: Timestamp;
 }
@@ -162,9 +162,9 @@ interface Criterion {
 ```typescript
 interface Evaluation {
   alternative_id: string; // ID альтернативи
-  criterion_id: string;   // ID критерію
-  value: number;          // Числова оцінка
-  updatedAt: Timestamp;   // Час останнього оновлення
+  criterion_id: string; // ID критерію
+  value: number; // Числова оцінка
+  updatedAt: Timestamp; // Час останнього оновлення
 }
 ```
 
@@ -179,6 +179,7 @@ interface Evaluation {
 ### `App.tsx`
 
 Кореневий компонент. Відповідає за:
+
 - відстеження стану автентифікації (`onAuthStateChanged`);
 - підписку на дані Firestore;
 - перемикання між вкладками (`dashboard`, `alternatives`, `criteria`).
@@ -201,6 +202,7 @@ interface Evaluation {
 ### `Sidebar`
 
 Фіксована бічна панель (ширина `256px`). Містить:
+
 - логотип та назву застосунку;
 - навігаційні кнопки;
 - блок профілю користувача та кнопку виходу.
@@ -217,6 +219,7 @@ interface Evaluation {
 ### `Dashboard`
 
 Збирає та відображає:
+
 - кількість альтернатив і критеріїв (статистичні картки);
 - компонент `AnalyticalService`;
 - компонент `EvaluationMatrix`.
@@ -228,6 +231,7 @@ interface Evaluation {
 Повноцінний CRUD-менеджер для альтернатив.
 
 **Функціонал:**
+
 - додавання нової альтернативи через inline-форму;
 - редагування назви та опису безпосередньо в списку;
 - видалення альтернативи.
@@ -350,6 +354,7 @@ minimize: normalized = (max - val) / (max - min)
 Якщо всі значення однакові (range = 0), нормалізований результат дорівнює `1`.
 
 Для мультиплікативного методу значення зміщуються у `[0.1, 1.0]`, щоб уникнути нуля:
+
 ```
 normalized = normalized * 0.9 + 0.1
 ```
@@ -392,12 +397,12 @@ normalized = normalized * 0.9 + 0.1
 
 ### Загальні принципи
 
-| Колекція       | Read | Create | Update | Delete        |
-|----------------|------|--------|--------|---------------|
-| `alternatives` | auth | auth + валідація | auth + валідація | тільки admin |
-| `criteria`     | auth | auth + валідація | auth + валідація | тільки admin |
-| `evaluations`  | auth | auth + валідація | auth + валідація | тільки admin |
-| `users`        | auth (свій) або admin | — | — | admin |
+| Колекція       | Read                  | Create           | Update           | Delete       |
+| -------------- | --------------------- | ---------------- | ---------------- | ------------ |
+| `alternatives` | auth                  | auth + валідація | auth + валідація | тільки admin |
+| `criteria`     | auth                  | auth + валідація | auth + валідація | тільки admin |
+| `evaluations`  | auth                  | auth + валідація | auth + валідація | тільки admin |
+| `users`        | auth (свій) або admin | —                | —                | admin        |
 
 ### Визначення адміністратора
 
@@ -412,6 +417,7 @@ function isAdmin() {
 ### Валідація даних
 
 Кожна колекція має власний валідатор, що перевіряє:
+
 - наявність обов'язкових полів (`hasRequiredFields`);
 - відсутність зайвих полів (`hasOnlyAllowedFields`);
 - типи та допустимі значення (`string`, `number`, `timestamp`, enum).
@@ -470,13 +476,13 @@ npm run build
 
 ## 12. Скрипти
 
-| Команда | Опис |
-|---------|------|
-| `npm run dev` | Запуск dev-сервера на порті 5173 (0.0.0.0) |
-| `npm run build` | Продакшн-збірка у директорію `dist/` |
-| `npm run preview` | Перегляд продакшн-збірки локально |
-| `npm run lint` | Перевірка TypeScript без емісії (`tsc --noEmit`) |
-| `npm run clean` | Видалення директорії `dist/` |
+| Команда           | Опис                                             |
+| ----------------- | ------------------------------------------------ |
+| `npm run dev`     | Запуск dev-сервера на порті 5173 (0.0.0.0)       |
+| `npm run build`   | Продакшн-збірка у директорію `dist/`             |
+| `npm run preview` | Перегляд продакшн-збірки локально                |
+| `npm run lint`    | Перевірка TypeScript без емісії (`tsc --noEmit`) |
+| `npm run clean`   | Видалення директорії `dist/`                     |
 
 ---
 
@@ -501,4 +507,4 @@ npm run build
 
 ---
 
-*Документація актуальна для версії `0.0.0` проєкту decision-supporter.*
+_Документація актуальна для версії `0.0.0` проєкту decision-supporter._

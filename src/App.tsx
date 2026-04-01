@@ -13,11 +13,15 @@ import { LoadingScreen } from './components/LoadingScreen';
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'alternatives' | 'criteria'>('dashboard');
-  
+  const [activeTab, setActiveTab] = useState<
+    'dashboard' | 'alternatives' | 'criteria'
+  >('dashboard');
+
   const [alternatives, setAlternatives] = useState<Alternative[]>([]);
   const [criteria, setCriteria] = useState<Criterion[]>([]);
-  const [evaluations, setEvaluations] = useState<Record<string, Evaluation>>({});
+  const [evaluations, setEvaluations] = useState<Record<string, Evaluation>>(
+    {}
+  );
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -51,18 +55,22 @@ const App: React.FC = () => {
       <main className="flex-1 ml-64 p-8">
         <div className="max-w-6xl mx-auto space-y-8">
           {activeTab === 'dashboard' && (
-            <Dashboard 
-              alternatives={alternatives} 
-              criteria={criteria} 
-              evaluations={evaluations} 
+            <Dashboard
+              alternatives={alternatives}
+              criteria={criteria}
+              evaluations={evaluations}
             />
           )}
 
           {activeTab === 'alternatives' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Управління альтернативами</h1>
-                <p className="text-slate-500 mt-1">Визначте варіанти, між якими ви обираєте.</p>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  Управління альтернативами
+                </h1>
+                <p className="text-slate-500 mt-1">
+                  Визначте варіанти, між якими ви обираєте.
+                </p>
               </div>
               <AlternativeManager alternatives={alternatives} />
             </div>
@@ -71,8 +79,12 @@ const App: React.FC = () => {
           {activeTab === 'criteria' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
-                <h1 className="text-3xl font-bold text-slate-900">Управління критеріями</h1>
-                <p className="text-slate-500 mt-1">Визначте фактори, які впливають на ваше рішення.</p>
+                <h1 className="text-3xl font-bold text-slate-900">
+                  Управління критеріями
+                </h1>
+                <p className="text-slate-500 mt-1">
+                  Визначте фактори, які впливають на ваше рішення.
+                </p>
               </div>
               <CriterionManager criteria={criteria} />
             </div>
