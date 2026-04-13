@@ -502,6 +502,34 @@ Prettier автоматично застосовується до всіх `.ts`
 
 Рекомендується запускати форматування перед комітом змін для підтримки єдиного стилю коду.
 
+---
+
+## Pre-commit hook та lint-staged
+
+У проєкті налаштовано автоматичну перевірку та форматування коду перед комітом за допомогою [Husky](https://typicode.github.io/husky/) та [lint-staged](https://github.com/okonet/lint-staged).
+
+- Husky додає git-хук `pre-commit` (див. `.husky/pre-commit`), який запускає lint-staged.
+- lint-staged застосовує ESLint та Prettier лише до змінених файлів:
+  - `*.js` — ESLint з автофіксом
+  - `*.js`, `*.css`, `*.md` — Prettier
+
+Конфігурація lint-staged знаходиться у `package.json`:
+
+```json
+"lint-staged": {
+  "*.js": "eslint --cache --fix",
+  "*.{js,css,md}": "prettier --write"
+}
+```
+
+Щоб husky працював, після встановлення залежностей виконайте:
+
+```bash
+npm run prepare
+```
+
+Тепер при кожному коміті код буде автоматично перевірятися та форматуватися.
+
 ## Додаток: типові сценарії використання
 
 ### Сценарій: вибір постачальника

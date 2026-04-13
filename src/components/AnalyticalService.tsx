@@ -120,7 +120,6 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
       });
     });
 
-    // 2. Calculate scores based on selected method
     const scores = alternatives.map((alt) => {
       let score = 0;
       let maxPossibleScore = 1;
