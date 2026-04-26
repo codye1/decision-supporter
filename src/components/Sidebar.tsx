@@ -11,8 +11,10 @@ import { logout } from '../firebase';
 
 interface SidebarProps {
   user: User;
-  activeTab: 'dashboard' | 'alternatives' | 'criteria';
-  setActiveTab: (tab: 'dashboard' | 'alternatives' | 'criteria') => void;
+  activeTab: 'dashboard' | 'alternatives' | 'criteria' | 'expert-rules';
+  setActiveTab: (
+    tab: 'dashboard' | 'alternatives' | 'criteria' | 'expert-rules'
+  ) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -48,6 +50,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'criteria' ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
       >
         <BarChart3 size={20} /> Критерії
+      </button>
+      <button
+        onClick={() => setActiveTab('expert-rules')}
+        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'expert-rules' ? 'bg-indigo-50 text-indigo-700 font-semibold shadow-sm' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}`}
+      >
+        <Scale size={20} /> Експертна логіка
       </button>
     </nav>
 

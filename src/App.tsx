@@ -9,12 +9,13 @@ import { Dashboard } from './components/Dashboard';
 import { Sidebar } from './components/Sidebar';
 import { AuthScreen } from './components/AuthScreen';
 import { LoadingScreen } from './components/LoadingScreen';
+import { ExpertRules } from './components/ExpertRules';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<
-    'dashboard' | 'alternatives' | 'criteria'
+    'dashboard' | 'alternatives' | 'criteria' | 'expert-rules'
   >('dashboard');
 
   const [alternatives, setAlternatives] = useState<Alternative[]>([]);
@@ -89,6 +90,8 @@ const App: React.FC = () => {
               <CriterionManager criteria={criteria} />
             </div>
           )}
+
+          {activeTab === 'expert-rules' && <ExpertRules />}
         </div>
       </main>
     </div>

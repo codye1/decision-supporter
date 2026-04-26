@@ -38,10 +38,29 @@ export const EvaluationMatrix: React.FC<EvaluationMatrixProps> = ({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+      <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-slate-800">
           Матриця оцінювання
         </h2>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            className="h-4 w-4"
+            aria-hidden="true"
+          >
+            <path d="M6 3.75h8.25L19.5 9v11.25a1.5 1.5 0 0 1-1.5 1.5h-12a1.5 1.5 0 0 1-1.5-1.5v-15a1.5 1.5 0 0 1 1.5-1.5Z" />
+            <path d="M14.25 3.75V9h5.25" />
+            <path d="m8.25 16.5 2.25 2.25 5.25-5.25" />
+          </svg>
+          Завантажити з Excel
+        </button>
       </div>
 
       <div className="overflow-x-auto">
