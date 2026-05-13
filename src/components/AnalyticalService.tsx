@@ -7,12 +7,13 @@ import {
   ShieldAlert,
   Layers,
 } from 'lucide-react';
-import { Alternative, Criterion, Evaluation } from '../types';
+import { Alternative, Criterion, Evaluation, ExpertRule, RuleOperator } from '../types';
 
 interface AnalyticalServiceProps {
   alternatives: Alternative[];
   criteria: Criterion[];
   evaluations: Record<string, Evaluation>;
+  rules: ExpertRule[];
 }
 
 type CalculationMethod = 'additive' | 'multiplicative' | 'cautious';
@@ -55,11 +56,88 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
   alternatives,
   criteria,
   evaluations,
+  rules = [],
 }) => {
   const [selectedMethod, setSelectedMethod] =
     useState<CalculationMethod>('additive');
 
   const hasData = alternatives.length > 0 && criteria.length > 0;
+
+  const {
+    feasibleAlternatives,
+    rejectedAlternatives,
+    thresholdCriteria,
+    ruleFilteredAlternatives,
+    activeRules,
+  } =
+    useMemo(() => {
+      const activeThresholds = criteria.filter(
+        (crit) =>
+          typeof crit.thresholdMin === 'number' ||
+          typeof crit.thresholdMax === 'number'
+      );
+
+      const enabledRules = rules.filter((rule) => rule.active);
+
+      const feasible =
+        activeThresholds.length === 0
+          ? alternatives
+          : alternatives.filter((alt) =>
+              activeThresholds.every((crit) => {
+                const value = evaluations[`${alt.id}_${crit.id}`]?.value;
+                if (value === undefined || Number.isNaN(value)) return false;
+                const minOk =
+                  typeof crit.thresholdMin === 'number'
+                    ? value >= crit.thresholdMin
+                    : true;
+                const maxOk =
+                  typeof crit.thresholdMax === 'number'
+                    ? value <= crit.thresholdMax
+                    : true;
+                return minOk && maxOk;
+              })
+            );
+
+      const compare = (operator: RuleOperator, left: number, right: number) => {
+        switch (operator) {
+          case '>':
+            return left > right;
+          case '>=':
+            return left >= right;
+          case '<':
+            return left < right;
+          case '<=':
+            return left <= right;
+          case '=':
+            return Math.abs(left - right) < 1e-6;
+          default:
+            return false;
+        }
+      };
+
+      const ruleFiltered = feasible.filter((alt) =>
+        enabledRules.every((rule) => {
+          if (rule.action !== 'exclude') return true;
+          const value = evaluations[`${alt.id}_${rule.criterionId}`]?.value;
+          if (value === undefined || Number.isNaN(value)) return true;
+          return !compare(rule.operator, value, rule.value);
+        })
+      );
+
+      const rejected = alternatives.filter(
+        (alt) => !ruleFiltered.some((item) => item.id === alt.id)
+      );
+
+      return {
+        feasibleAlternatives: ruleFiltered,
+        rejectedAlternatives: rejected,
+        thresholdCriteria: activeThresholds,
+        ruleFilteredAlternatives: feasible.filter(
+          (alt) => !ruleFiltered.some((item) => item.id === alt.id)
+        ),
+        activeRules: enabledRules,
+      };
+    }, [alternatives, criteria, evaluations, rules]);
 
   const { evaluationCount, totalPossibleEvaluations, completionPercentage } =
     useMemo(() => {
@@ -85,20 +163,55 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
 
   const results = useMemo(() => {
     if (!hasData || completionPercentage < 100) return [];
+    if (feasibleAlternatives.length === 0) return [];
 
     // 1. Normalize values for each criterion
     const normalizedEvaluations: Record<string, number> = {};
 
+    const compare = (operator: RuleOperator, left: number, right: number) => {
+      switch (operator) {
+        case '>':
+          return left > right;
+        case '>=':
+          return left >= right;
+        case '<':
+          return left < right;
+        case '<=':
+          return left <= right;
+        case '=':
+          return Math.abs(left - right) < 1e-6;
+        default:
+          return false;
+      }
+    };
+
+    const adjustmentFactors: Record<string, number> = {};
+    feasibleAlternatives.forEach((alt) => {
+      let factor = 1;
+      activeRules
+        .filter((rule) => rule.action === 'adjust')
+        .forEach((rule) => {
+          const value = evaluations[`${alt.id}_${rule.criterionId}`]?.value;
+          if (value === undefined || Number.isNaN(value)) return;
+          if (!compare(rule.operator, value, rule.value)) return;
+          const percent = rule.adjustmentPercent ?? 0;
+          factor *= 1 + percent / 100;
+        });
+      adjustmentFactors[alt.id] = factor;
+    });
+
     criteria.forEach((crit) => {
-      const values = alternatives.map(
-        (alt) => evaluations[`${alt.id}_${crit.id}`]?.value || 0
-      );
+      const values = feasibleAlternatives.map((alt) => {
+        const raw = evaluations[`${alt.id}_${crit.id}`]?.value || 0;
+        return raw * (adjustmentFactors[alt.id] ?? 1);
+      });
       const min = Math.min(...values);
       const max = Math.max(...values);
       const range = max - min;
 
-      alternatives.forEach((alt) => {
-        const val = evaluations[`${alt.id}_${crit.id}`]?.value || 0;
+      feasibleAlternatives.forEach((alt) => {
+        const raw = evaluations[`${alt.id}_${crit.id}`]?.value || 0;
+        const val = raw * (adjustmentFactors[alt.id] ?? 1);
         let normalized = 0;
 
         if (range === 0) {
@@ -120,9 +233,29 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
       });
     });
 
-    const scores = alternatives.map((alt) => {
+    const scores = feasibleAlternatives.map((alt) => {
       let score = 0;
       let maxPossibleScore = 1;
+
+      const contributions = criteria.map((crit) => ({
+        criterionId: crit.id,
+        name: crit.name,
+        contribution: (crit.weight || 1) * normalizedEvaluations[`${alt.id}_${crit.id}`],
+      }));
+
+      const appliedRules = activeRules
+        .filter((rule) => rule.action === 'adjust')
+        .filter((rule) => {
+          const value = evaluations[`${alt.id}_${rule.criterionId}`]?.value;
+          if (value === undefined || Number.isNaN(value)) return false;
+          return compare(rule.operator, value, rule.value);
+        })
+        .map((rule) => {
+          const criterion = criteria.find((crit) => crit.id === rule.criterionId);
+          const label = `${criterion?.name || 'Критерій'} ${rule.operator} ${rule.value}`;
+          const percent = rule.adjustmentPercent ?? 0;
+          return `IF ${label} THEN ${percent}%`;
+        });
 
       if (selectedMethod === 'additive') {
         score = criteria.reduce((sum, crit) => {
@@ -154,6 +287,8 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
         id: alt.id,
         name: alt.name,
         score: score / (maxPossibleScore || 1),
+        contributions,
+        appliedRules,
       };
     });
 
@@ -163,9 +298,11 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
     alternatives,
     criteria,
     evaluations,
+    activeRules,
     selectedMethod,
     hasData,
     completionPercentage,
+    feasibleAlternatives,
   ]);
 
   return (
@@ -246,6 +383,31 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
                   Заповнено {evaluationCount} з {totalPossibleEvaluations}{' '}
                   оцінок.
                 </p>
+                {(thresholdCriteria.length > 0 || activeRules.length > 0) && (
+                  <div className="mt-4 rounded-lg border border-indigo-700/40 bg-indigo-950/40 p-3 text-xs text-indigo-200">
+                    <div className="font-semibold text-indigo-100">
+                      Порогова обробка та правила активні
+                    </div>
+                    <div className="mt-1 text-indigo-300">
+                      Допустимі альтернативи: {feasibleAlternatives.length} з{' '}
+                      {alternatives.length}
+                    </div>
+                    {ruleFilteredAlternatives.length > 0 && (
+                      <div className="mt-1 text-indigo-300">
+                        Відсічені правилами: {ruleFilteredAlternatives
+                          .map((alt) => alt.name)
+                          .join(', ')}
+                      </div>
+                    )}
+                    {rejectedAlternatives.length > 0 && (
+                      <div className="mt-1 text-indigo-300">
+                        Відсічені: {rejectedAlternatives
+                          .map((alt) => alt.name)
+                          .join(', ')}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -260,6 +422,17 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
                 <p className="text-xs text-indigo-400 max-w-xs">
                   Будь ласка, заповніть всі оцінки в матриці, щоб отримати
                   результати розрахунків.
+                </p>
+              </div>
+            ) : thresholdCriteria.length > 0 && feasibleAlternatives.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center p-8 bg-indigo-950/20 rounded-xl border border-dashed border-indigo-700/30 text-center">
+                <AlertCircle className="text-indigo-700 mb-3" size={48} />
+                <h4 className="text-indigo-200 font-medium mb-1">
+                  Немає допустимих альтернатив
+                </h4>
+                <p className="text-xs text-indigo-400 max-w-xs">
+                  Усі альтернативи відсічені пороговими обмеженнями. Перевірте
+                  значення порогів або оцінки.
                 </p>
               </div>
             ) : (
@@ -300,6 +473,26 @@ export const AnalyticalService: React.FC<AnalyticalServiceProps> = ({
                               width: `${Math.max(0, isNaN(result.score) ? 0 : (result.score / (results[0]?.score || 1)) * 100)}%`,
                             }}
                           />
+                        </div>
+                        <div className="mt-2 text-[11px] text-indigo-300">
+                          {(() => {
+                            const topCriteria = [...result.contributions]
+                              .sort((a, b) => b.contribution - a.contribution)
+                              .slice(0, 2)
+                              .map((item) => item.name);
+                            const ruleText =
+                              result.appliedRules.length > 0
+                                ? `Правила: ${result.appliedRules.join('; ')}`
+                                : 'Правила: не застосовано';
+                            return (
+                              <>
+                                <span>
+                                  Найбільший вплив: {topCriteria.join(', ') || '—'}.
+                                </span>
+                                <span className="ml-2">{ruleText}</span>
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                       {index === 0 && (

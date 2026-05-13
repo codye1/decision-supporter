@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from './firebase';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { Alternative, Criterion, Evaluation } from './types';
+import { Alternative, Criterion, Evaluation, ExpertRule } from './types';
 import { decisionService } from './services/decisionService';
 import { AlternativeManager } from './components/AlternativeManager';
 import { CriterionManager } from './components/CriterionManager';
@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [evaluations, setEvaluations] = useState<Record<string, Evaluation>>(
     {}
   );
+  const [rules, setRules] = useState<ExpertRule[]>([]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -38,11 +39,13 @@ const App: React.FC = () => {
     const unsubAlts = decisionService.subscribeToAlternatives(setAlternatives);
     const unsubCrits = decisionService.subscribeToCriteria(setCriteria);
     const unsubEvals = decisionService.subscribeToEvaluations(setEvaluations);
+    const unsubRules = decisionService.subscribeToRules(setRules);
 
     return () => {
       unsubAlts();
       unsubCrits();
       unsubEvals();
+      unsubRules();
     };
   }, [user]);
 
@@ -60,6 +63,7 @@ const App: React.FC = () => {
               alternatives={alternatives}
               criteria={criteria}
               evaluations={evaluations}
+              rules={rules}
             />
           )}
 
@@ -76,7 +80,6 @@ const App: React.FC = () => {
               <AlternativeManager alternatives={alternatives} />
             </div>
           )}
-
           {activeTab === 'criteria' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div>
@@ -91,7 +94,9 @@ const App: React.FC = () => {
             </div>
           )}
 
-          {activeTab === 'expert-rules' && <ExpertRules />}
+          {activeTab === 'expert-rules' && (
+            <ExpertRules criteria={criteria} rules={rules} />
+          )}
         </div>
       </main>
     </div>

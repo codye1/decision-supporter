@@ -290,8 +290,8 @@ deleteAlternative(id: string): Promise<void>
 
 ```typescript
 subscribeToCriteria(onUpdate: (criteria: Criterion[]) => void): Unsubscribe
-addCriterion(name: string, type: 'maximize'|'minimize', weight: number, description?: string): Promise<void>
-updateCriterion(id: string, name: string, type: 'maximize'|'minimize', weight: number, description?: string): Promise<void>
+addCriterion(name: string, type: 'maximize'|'minimize', weight: number, description?: string, thresholdMin?: number, thresholdMax?: number): Promise<void>
+updateCriterion(id: string, name: string, type: 'maximize'|'minimize', weight: number, description?: string, thresholdMin?: number, thresholdMax?: number): Promise<void>
 deleteCriterion(id: string): Promise<void>
 ```
 

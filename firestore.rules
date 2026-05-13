@@ -19,8 +19,12 @@ service cloud.firestore {
     //   - id: string (required)
     //   - name: string (required, 1-100 chars)
     //   - type: string (required, enum: ['maximize', 'minimize'])
-    //   - weight: number (required, 0.1-1.0)
+    //   - weight: number (required, 0.1-10.0)
     //   - description: string (optional, 0-500 chars)
+    //   - thresholdMin: number (optional)
+    //   - thresholdMax: number (optional)
+    //   - thresholdEnabled: boolean (legacy, optional)
+    //   - thresholdValue: number (legacy, optional)
     //   - createdAt: timestamp (required)
     //
     // Collection: evaluations
@@ -30,6 +34,19 @@ service cloud.firestore {
     //   - criterion_id: string (required)
     //   - value: number (required)
     //   - updatedAt: timestamp (required)
+    //
+    // Collection: rules
+    // Document ID: {ruleId}
+    // Fields:
+    //   - id: string (required)
+    //   - name: string (optional, 0-100 chars)
+    //   - criterionId: string (required)
+    //   - operator: string (required, enum: ['>', '>=', '<', '<=', '='])
+    //   - value: number (required)
+    //   - action: string (required, enum: ['exclude', 'adjust'])
+    //   - adjustmentPercent: number (optional)
+    //   - active: boolean (required)
+    //   - createdAt: timestamp (required)
     //
     // ===============================================================
 
@@ -68,12 +85,16 @@ service cloud.firestore {
 
     function isValidCriterion(data) {
       return hasRequiredFields(['id', 'name', 'type', 'weight', 'createdAt']) &&
-             hasOnlyAllowedFields(['id', 'name', 'type', 'weight', 'description', 'createdAt']) &&
+             hasOnlyAllowedFields(['id', 'name', 'type', 'weight', 'description', 'thresholdMin', 'thresholdMax', 'thresholdEnabled', 'thresholdValue', 'createdAt']) &&
              data.id is string && data.id.size() > 0 &&
              data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
              data.type in ['maximize', 'minimize'] &&
-             data.weight is number && data.weight >= 0.1 && data.weight <= 1.0 &&
+             data.weight is number && data.weight >= 0.1 && data.weight <= 10.0 &&
              (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
+             (!('thresholdMin' in data) || data.thresholdMin is number) &&
+             (!('thresholdMax' in data) || data.thresholdMax is number) &&
+             (!('thresholdEnabled' in data) || data.thresholdEnabled is bool) &&
+             (!('thresholdValue' in data) || data.thresholdValue is number) &&
              data.createdAt is timestamp;
     }
 
@@ -84,6 +105,38 @@ service cloud.firestore {
              data.criterion_id is string && data.criterion_id.size() > 0 &&
              data.value is number &&
              data.updatedAt is timestamp;
+    }
+
+    function isValidRule(data) {
+      return hasRequiredFields([
+               'id',
+               'criterionId',
+               'operator',
+               'value',
+               'action',
+               'active',
+               'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id',
+               'name',
+               'criterionId',
+               'operator',
+               'value',
+               'action',
+               'adjustmentPercent',
+               'active',
+               'createdAt'
+             ]) &&
+             data.id is string && data.id.size() > 0 &&
+             data.criterionId is string && data.criterionId.size() > 0 &&
+             data.operator in ['>', '>=', '<', '<=', '='] &&
+             data.value is number &&
+             data.action in ['exclude', 'adjust'] &&
+             data.active is bool &&
+             (!('name' in data) || (data.name is string && data.name.size() <= 100)) &&
+             (!('adjustmentPercent' in data) || data.adjustmentPercent is number) &&
+             data.createdAt is timestamp;
     }
 
     // ===============================================================
@@ -113,6 +166,13 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow create: if isAuthenticated() && isValidEvaluation(request.resource.data);
       allow update: if isAuthenticated() && isValidEvaluation(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /rules/{ruleId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidRule(request.resource.data);
+      allow update: if isAuthenticated() && isValidRule(request.resource.data);
       allow delete: if isAdmin();
     }
 

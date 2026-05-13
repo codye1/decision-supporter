@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alternative, Criterion, Evaluation } from '../types';
+import { Alternative, Criterion, Evaluation, ExpertRule } from '../types';
 import { AnalyticalService } from './AnalyticalService';
 import { EvaluationMatrix } from './EvaluationMatrix';
 
@@ -7,12 +7,14 @@ interface DashboardProps {
   alternatives: Alternative[];
   criteria: Criterion[];
   evaluations: Record<string, Evaluation>;
+  rules: ExpertRule[];
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   alternatives,
   criteria,
   evaluations,
+  rules,
 }) => (
   <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
     <div className="flex justify-between items-end">
@@ -46,6 +48,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       alternatives={alternatives}
       criteria={criteria}
       evaluations={evaluations}
+      rules={rules}
     />
 
     <EvaluationMatrix
